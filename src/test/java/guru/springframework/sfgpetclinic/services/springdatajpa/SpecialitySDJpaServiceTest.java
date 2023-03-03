@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.never;
@@ -43,26 +45,54 @@ class SpecialitySDJpaServiceTest {
     }
 
     @Test
-    void deleteByObj() {
+    void findByIdBDDTest() {
+        // given
         Speciality speciality = new Speciality();
+        given(repository.findById(1L)).willReturn(Optional.of(speciality));
+        // when
+        Speciality found = service.findById(1L);
+        // then
+        assertThat(found).isNotNull();
+        then(repository).should().findById(anyLong());
+        then(repository).should(times(1)).findById(anyLong());
+        then(repository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    void deleteByObj() {
+        // given
+        Speciality speciality = new Speciality();
+        // when
         service.delete(speciality);
+        // then
         verify(repository).delete(any(Speciality.class));
+        then(repository).should().delete(any(Speciality.class));
     }
 
     @Test
     void deleteById() {
+        // when
         service.deleteById(1L);
         service.deleteById(2L);
+        // then
+        then(repository).should(times(2)).deleteById(anyLong());
         verify(repository, times(2)).deleteById(anyLong());
     }
 
     @Test
     void deleteByIdAtLeastOnce() {
+        // when
         service.deleteById(1L);
         service.deleteById(2L);
-        verify(repository, atLeastOnce()).deleteById(anyLong());
-        verify(repository, atMost(2)).deleteById(anyLong());
-        verify(repository, never()).deleteById(4L);
+        // then
+//        verify(repository, atLeastOnce()).deleteById(anyLong());
+//        verify(repository, atMost(2)).deleteById(anyLong());
+//        verify(repository, never()).deleteById(4L);
+        then(repository).should(atLeastOnce()).deleteById(anyLong());
+        then(repository).should(times(2)).deleteById(anyLong());
+        then(repository).should(atMost(2)).deleteById(anyLong());
+        then(repository).should(never()).deleteById(43L);
+        then(repository).shouldHaveNoMoreInteractions();
     }
 
     @Test
