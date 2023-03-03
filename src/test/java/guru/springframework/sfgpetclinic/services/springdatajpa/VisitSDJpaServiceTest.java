@@ -7,7 +7,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,6 +17,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import guru.springframework.sfgpetclinic.model.Speciality;
 import guru.springframework.sfgpetclinic.model.Visit;
 import guru.springframework.sfgpetclinic.repositories.VisitRepository;
 import org.junit.jupiter.api.Test;
@@ -99,5 +102,26 @@ class VisitSDJpaServiceTest {
         then(repository).should().deleteById(anyLong());
         then(repository).should(atMost(1)).deleteById(anyLong());
         then(repository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    void testDoThrowException() {
+        doThrow(new RuntimeException("boom")).when(repository).delete(any());
+        assertThrows(RuntimeException.class, () -> repository.delete(new Visit()));
+        verify(repository).delete(any(Visit.class));
+    }
+
+    @Test
+    void bddTestDoThrowFindById() {
+        given(repository.findById(1L)).willThrow(new RuntimeException("boom"));
+        assertThrows(RuntimeException.class, () -> service.findById(1L));
+        then(repository).should().findById(anyLong());
+    }
+
+    @Test
+    void bddTestDelete() {
+        willThrow(new RuntimeException("boom")).given(repository).delete(any(Visit.class));
+        assertThrows(RuntimeException.class, () -> service.delete(new Visit()));
+        then(repository).should().delete(any(Visit.class));
     }
 }

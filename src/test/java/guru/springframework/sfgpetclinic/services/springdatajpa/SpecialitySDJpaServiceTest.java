@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.atLeastOnce;
@@ -99,5 +100,22 @@ class SpecialitySDJpaServiceTest {
     void delete() {
         service.delete(new Speciality());
         verify(repository).delete(any());
+    }
+
+    @Test
+    void testSaveLambda() {
+        final String MATCH_ME = "MATCH_ME";
+        Speciality speciality = new Speciality();
+        speciality.setDescription(MATCH_ME);
+
+        Speciality savedSpecialty = new Speciality();
+        savedSpecialty.setId(1L);
+
+        given(repository.save(argThat(argument -> argument.getDescription().equals(MATCH_ME)))).willReturn(savedSpecialty);
+        // when
+        Speciality returnedSpecialty = service.save(speciality);
+
+        // then
+        assertThat(returnedSpecialty.getId()).isEqualTo(1L);
     }
 }
